@@ -1,0 +1,42 @@
+services:
+  collector:
+    image: otel/opentelemetry-collector:0.100.0
+    volumes:
+      - ../../config/docker-config.yaml:/etc/docker-config.yaml
+    command: ["--config", "/etc/docker-config.yaml"]
+
+  dotnet:
+    build:
+      context: ../../samples/dotnet
+    ports:
+      - "9000:8080"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4317
+      - OTEL_SERVICE_NAME=dotnet
+
+  go:
+    build:
+      context: ../../samples/go
+    ports:
+      - "9001:8080"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4317
+      - OTEL_SERVICE_NAME=go
+
+  java:
+    build:
+      context: ../../samples/java
+    ports:
+      - "9002:8080"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4317
+      - OTEL_SERVICE_NAME=java
+  
+  python:
+    build:
+      context: ../../samples/python
+    ports:
+      - "9003:8080"
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://collector:4317
+      - OTEL_SERVICE_NAME=python

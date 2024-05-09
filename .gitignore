@@ -1,0 +1,7 @@
+__pycache__
+venv
+.gradle
+build
+bin
+obj
+.vscode
