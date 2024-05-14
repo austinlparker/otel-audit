@@ -1,0 +1,38 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+
+groups:
+  - otelcol
+
+system_info:
+  default_user:
+    groups: [ otelcol ]
+
+packages:
+  - wget
+  - systemctl
+  - oraclelinux-developer-release-el8
+  - python36-oci-cli
+
+runcmd:
+  - wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.100.0/otelcol_0.100.0_linux_arm64.rpm
+  - sudo rpm -ivh otelcol_0.100.0_linux_arm64.rpm
+  - oci certificates certificate-authority-bundle get --certificate-authority-id ocid1.certificateauthority.oc1.us-sanjose-1.amaaaaaa2lro64iajbqqwooyiwofs2uy3z3mswxo3vty3djz5bg2fm4bkfwa --auth instance_principal | jq -r '.data["cert-chain-pem"]' > /home/opc/ca.pem
+  - oci certificates certificate-bundle get --certificate-id ocid1.certificate.oc1.us-sanjose-1.amaaaaaa2lro64iay4vyina6aj44edibjaqm26ipdlg5im6o5s33x4h2e2ka --bundle-type CERTIFICATE_CONTENT_WITH_PRIVATE_KEY --auth instance_principal | jq -r '.data["certificate-pem"]' > /home/opc/cert.pem
+  - oci certificates certificate-bundle get --certificate-id ocid1.certificate.oc1.us-sanjose-1.amaaaaaa2lro64iay4vyina6aj44edibjaqm26ipdlg5im6o5s33x4h2e2ka --bundle-type CERTIFICATE_CONTENT_WITH_PRIVATE_KEY --auth instance_principal | jq -r '.data["private-key-pem"]' > /home/opc/key.pem
+  - oci os object get --bucket-name config --name gateway-config.yaml --file config.yaml --auth instance_principal
+  - sudo mkdir /var/log/otelcol/
+  - sudo chown otel:otel /var/log/otelcol/
+  - sudo mv gateway-config.yaml /etc/otelcol/config.yaml
+  - sudo chown otel:otel /etc/otelcol/config.yaml
+  - sudo mv ca.pem /etc/otelcol/ca.pem
+  - sudo mv cert.pem /etc/otelcol/cert.pem
+  - sudo mv key.pem /etc/otelcol/key.pem
+  - sudo chown otel:otel /etc/otelcol/ca.pem
+  - sudo chown otel:otel /etc/otelcol/cert.pem
+  - sudo chown otel:otel /etc/otelcol/key.pem
+  - sudo systemctl restart otelcol
+  
+final_message: "The system is finally up, after $UPTIME seconds"

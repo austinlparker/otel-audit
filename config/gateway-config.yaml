@@ -1,0 +1,75 @@
+extensions:
+  health_check:
+  pprof:
+    endpoint: localhost:1777
+  zpages:
+    endpoint: localhost:55679
+  oidc/server:
+    issuer_url: https://idcs-146b14cb77e84595a3c5d99b03d5debe.identity.oraclecloud.com:443/oauth2/v1/authorize
+    audience: collectoragent
+    attribute: authorization
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        tls:
+          ca_file: /etc/otelcol/ca.pem
+          cert_file: /etc/otelcol/cert.pem
+          key_file: /etc/otelcol/key.pem
+        auth:
+          authenticator: oidc/server
+      http:
+        tls:
+          ca_file: /etc/otelcol/ca.pem
+          cert_file: /etc/otelcol/cert.pem
+          key_file: /etc/otelcol/key.pem
+        auth:
+          authenticator: oidc/server
+
+  # Collect own metrics
+  prometheus:
+    config:
+      scrape_configs:
+      - job_name: 'otel-collector'
+        scrape_interval: 60s
+        static_configs:
+        - targets: ['localhost:8888']
+  
+  hostmetrics:
+    scrapers:
+      cpu:
+      memory:
+      disk:
+      network:
+      filesystem:
+      processes:
+      process:
+
+processors:
+  batch:
+
+exporters:
+  file:
+    path: "/home/oca/collector.log.json"
+    rotation:
+  debug:
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug, file]
+
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [batch]
+      exporters: [debug, file]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug, file]
+
+  extensions: [oidc/server, health_check, pprof, zpages]
