@@ -85,3 +85,17 @@ _Please see the cloud-init scripts in `deploy/vm` for details._
 The sample applications are deployed to one (or more) worker instances. The worker runs an OpenTelemetry Collector that listens for host telemetry and forwards it to the gateway instance. This instance also contains a collector. The gateway and worker collectors are secured using mTLS as well as OAuth/OIDC.
 
 For convenience, all instances are placed into the public subnet (to avoid having bastion hosts for SSH) -- in a true production environment, the gateway collectors would not be exposed to the public internet.
+
+### Accessing the environment
+
+Check with Austin in Slack for access. The username for each node is 'ocp' with key-based authentication. The keys are located in a 1Password vault.
+
+### Running a container
+
+Be sure to run the container with the `--network host` flag to ensure that the container can communicate with the host's network stack.
+
+```shell
+docker run --network host -e OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 -e OTEL_SERVICE_NAME=go -d ghcr.io/austinlparker/otel-audit:<language>
+```
+
+Each service runs on port 8080, so either run one at a time or map the container port to a different host port.
