@@ -1,9 +1,9 @@
-name: Publish Docker image to ghcr.io
+name: Publish Docker images to ghcr.io
 
 on:
   push:
     branches:
-      - main
+      - main # Change this to the branch you want to trigger the workflow
 
 jobs:
   build-and-push:
@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
@@ -25,8 +28,7 @@ jobs:
           for dir in samples/*; do
             if [ -d "$dir" ]; then
               image_name=$(basename $dir)
-              echo "Building and pushing $image_name"
-              docker build -t ghcr.io/${{ github.repository }}:$image_name $dir
-              docker push ghcr.io/${{ github.repository }}:$image_name
+              echo "Building and pushing $image_name for linux/arm64"
+              docker buildx build --platform linux/arm64 -t ghcr.io/${{ github.repository }}:$image_name --push $dir
             fi
           done
