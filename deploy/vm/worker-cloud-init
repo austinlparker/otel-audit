@@ -3,44 +3,25 @@
 package_update: true
 package_upgrade: true
 
-groups:
-  - docker
-
-system_info:
-  default_user:
-    groups: [ docker ]
-
 packages:
-  - apt-transport-https
-  - ca-certificates
-  - curl
-  - gnupg
-  - lsb-release
-  - unattended-upgrades
-  - wget
-  - systemctl
-  - oraclelinux-developer-release-el8
+  - podman
+  - podman-docker
+  - buildah
+  - skopeo
   - python36-oci-cli
 
 runcmd:
-  - mkdir -p /etc/apt/keyrings
-  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-  - apt-get update
-  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-  - systemctl enable docker
-  - systemctl start docker
   - oci certificates certificate-authority-bundle get --certificate-authority-id ocid1.certificateauthority.oc1.us-sanjose-1.amaaaaaa2lro64iajbqqwooyiwofs2uy3z3mswxo3vty3djz5bg2fm4bkfwa --auth instance_principal | jq -r '.data["cert-chain-pem"]' > /home/opc/ca.pem
-  - oci certificates certificate-bundle get --certificate-id ocid1.certificate.oc1.us-sanjose-1.amaaaaaa2lro64iay4vyina6aj44edibjaqm26ipdlg5im6o5s33x4h2e2ka --auth instance_principal | jq -r '.data["certificate-pem"]' > /home/opc/cert.pem
-  - oci os object get --bucket-name config --name worker-config.yaml --file config.yaml --auth instance_principal
-  - oci secrets secret-bundle get --secret-id ocid1.vaultsecret.oc1.us-sanjose-1.amaaaaaa2lro64iayfid3akdkxgob3ayjne5hoxatqqdzh7zczefnn4q3n4a --auth instance_principal |  jq -r '.data."secret-bundle-content".content' | base64 --decode | xargs -I {} echo 'OTEL_COLLECTOR_OAUTH2_CLIENT_SECRET={}' >> /etc/otelcol-audit/otelcol-audit.conf
-  - oci os object get --bucket-name otelcol-audit --name otelcol-audit_0.0.0-SNAPSHOT-767ab8d_linux_arm64.rpm --file otelcol_linux_arm64.rpm --auth instance_principal
-  - sudo rpm -ivh otelcol_linux_arm64.rpm
-  - sudo mv worker-config.yaml /etc/otelcol-audit/config.yaml
+  - oci certificates certificate-bundle get --certificate-id ocid1.certificate.oc1.us-sanjose-1.amaaaaaa2lro64iay4vyina6aj44edibjaqm26ipdlg5im6o5s33x4h2e2ka --bundle-type CERTIFICATE_CONTENT_WITH_PRIVATE_KEY --auth instance_principal | jq -r '.data["certificate-pem"]' > /home/opc/cert.pem
+  - oci certificates certificate-bundle get --certificate-id ocid1.certificate.oc1.us-sanjose-1.amaaaaaa2lro64iay4vyina6aj44edibjaqm26ipdlg5im6o5s33x4h2e2ka --bundle-type CERTIFICATE_CONTENT_WITH_PRIVATE_KEY --auth instance_principal | jq -r '.data["private-key-pem"]' > /home/opc/key.pem
+  - oci os object get --bucket-name config --name worker-config.yaml --file /home/opc/config.yaml --auth instance_principal
+  - oci os object get --bucket-name otelcol-audit --name otelcol-audit_0.0.0-SNAPSHOT-1ca2fc6_linux_arm64.rpm --file /home/opc/otelcol_linux_arm64.rpm --auth instance_principal
+  - sudo rpm -ivh /home/opc/otelcol_linux_arm64.rpm
+  - sudo mv /home/opc/config.yaml /etc/otelcol-audit/config.yaml
   - sudo chown otel:otel /etc/otelcol-audit/config.yaml
-  - sudo mv ca.pem /etc/otelcol-audit/ca.pem
-  - sudo mv cert.pem /etc/otelcol-audit/cert.pem
-  - sudo mv key.pem /etc/otelcol-audit/key.pem
+  - sudo mv /home/opc/ca.pem /etc/otelcol-audit/ca.pem
+  - sudo mv /home/opc/cert.pem /etc/otelcol-audit/cert.pem
+  - sudo mv /home/opc/key.pem /etc/otelcol-audit/key.pem
   - sudo chown otel:otel /etc/otelcol-audit/ca.pem
   - sudo chown otel:otel /etc/otelcol-audit/cert.pem
   - sudo chown otel:otel /etc/otelcol-audit/key.pem

@@ -21,11 +21,11 @@ receivers:
   prometheus:
     config:
       scrape_configs:
-      - job_name: 'otel-collector'
-        scrape_interval: 60s
-        static_configs:
-        - targets: ['localhost:8888']
-  
+        - job_name: "otel-collector"
+          scrape_interval: 60s
+          static_configs:
+            - targets: ["localhost:8888"]
+
   hostmetrics:
     scrapers:
       cpu:
@@ -43,12 +43,11 @@ exporters:
   otlp/secure:
     endpoint: gateway:4317
     tls:
-      ca_file: /etc/otelcol/ca.pem
-      cert_file: /etc/otelcol/cert.pem
-      key_file: /etc/otelcol/key.pem
+      ca_file: /etc/otelcol-audit/ca.pem
+      cert_file: /etc/otelcol-audit/cert.pem
+      key_file: /etc/otelcol-audit/key.pem
     auth:
       authenticator: oauth2client/client
-
 
 service:
   pipelines:
@@ -58,7 +57,7 @@ service:
       exporters: [otlp/secure]
 
     metrics:
-      receivers: [otlp, prometheus]
+      receivers: [otlp, prometheus, hostmetrics]
       processors: [batch]
       exporters: [otlp/secure]
 

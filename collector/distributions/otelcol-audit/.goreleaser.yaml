@@ -4,31 +4,11 @@ env:
 builds:
   - id: otelcol-audit
     goos:
-      - darwin
       - linux
-      - windows
     goarch:
-      - "386"
-      - amd64
-      - arm
       - arm64
-      - ppc64le
-      - s390x
     goarm:
       - "7"
-    ignore:
-      - goos: darwin
-        goarch: "386"
-      - goos: darwin
-        goarch: arm
-      - goos: darwin
-        goarch: s390x
-      - goos: windows
-        goarch: arm
-      - goos: windows
-        goarch: arm64
-      - goos: windows
-        goarch: s390x
     dir: _build
     binary: otelcol-audit
     ldflags:
@@ -42,7 +22,7 @@ archives:
   - id: otelcol-audit
     builds:
       - otelcol-audit
-    name_template: '{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}'
+    name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}{{ if .Mips }}_{{ .Mips }}{{ end }}"
 nfpms:
   - package_name: otelcol-audit
     contents:
@@ -69,7 +49,7 @@ nfpms:
     description: OpenTelemetry Collector - otelcol-audit
     license: Apache 2.0
 checksum:
-  name_template: '{{ .ProjectName }}_otelcol-audit_checksums.txt'
+  name_template: "{{ .ProjectName }}_otelcol-audit_checksums.txt"
 signs:
   - cmd: cosign
     args:
