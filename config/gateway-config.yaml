@@ -6,13 +6,14 @@ extensions:
     endpoint: localhost:55679
   oidc/server:
     issuer_url: https://idcs-146b14cb77e84595a3c5d99b03d5debe.identity.oraclecloud.com:443/
-    audience: collectoragent
+    audience: collector
     attribute: authorization
 
 receivers:
   otlp:
     protocols:
       grpc:
+        endpoint: "0.0.0.0:4317"
         tls:
           ca_file: /etc/otelcol-audit/ca.pem
           cert_file: /etc/otelcol-audit/cert.pem
@@ -20,6 +21,7 @@ receivers:
         auth:
           authenticator: oidc/server
       http:
+        endpoint: "0.0.0.0:4318"
         tls:
           ca_file: /etc/otelcol-audit/ca.pem
           cert_file: /etc/otelcol-audit/cert.pem
@@ -45,6 +47,11 @@ receivers:
       filesystem:
       processes:
       process:
+        mute_process_name_error: true
+        mute_process_exe_error: true
+        mute_process_io_error: true
+        mute_process_user_error: true
+        mute_process_cgroup_error: true
 
 processors:
   batch:
@@ -53,21 +60,29 @@ exporters:
   file:
     path: "/var/log/otelcol/collector.json"
     rotation:
+  file/local:
+    path: "/var/log/otelcol/collector-local.json"
+    rotation:
   debug:
 
 service:
   pipelines:
-    traces:
+    traces/remote:
       receivers: [otlp]
       processors: [batch]
       exporters: [debug, file]
 
-    metrics:
-      receivers: [otlp, prometheus, hostmetrics]
+    metrics/remote:
+      receivers: [otlp]
       processors: [batch]
       exporters: [debug, file]
 
-    logs:
+    metrics/local:
+      receivers: [prometheus, hostmetrics]
+      processors: [batch]
+      exporters: [debug, file/local]
+
+    logs/remote:
       receivers: [otlp]
       processors: [batch]
       exporters: [debug, file]

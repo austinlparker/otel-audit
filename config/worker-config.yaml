@@ -7,6 +7,9 @@ extensions:
   oauth2client/client:
     client_id: 61ab6521f4bd4d2aa29f2c67915ac7d6
     client_secret: ${env:OTEL_COLLECTOR_OAUTH2_CLIENT_SECRET}
+    scopes: ["collectoragent"]
+    endpoint_params:
+      grant_type: "client_credentials"
     token_url: https://idcs-146b14cb77e84595a3c5d99b03d5debe.identity.oraclecloud.com:443/oauth2/v1/token
 
 receivers:
@@ -35,6 +38,11 @@ receivers:
       filesystem:
       processes:
       process:
+        mute_process_name_error: true
+        mute_process_exe_error: true
+        mute_process_io_error: true
+        mute_process_user_error: true
+        mute_process_cgroup_error: true
 
 processors:
   batch:

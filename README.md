@@ -53,3 +53,35 @@ To run the sample applications locally, run the following:
 cd deploy/docker
 docker compose up
 ```
+
+## Cloud Deployment
+
+This repository also contains the necessary configuration to deploy the sample applications to a cloud environment. We are using Oracle Cloud Infrastructure (OCI) as the cloud provider. The specification of the environment is:
+
+### Instances
+
+- Oracle Linux 8 on ARM64 (Ampere)
+- Gateway 2 OCPU, 16GB RAM
+- Worker 1 OCPU, 8GB RAM
+
+### Networking
+
+- VCN with public and private subnets
+- Public subnet (10.0.0.0/24) with Internet Gateway
+- Private subnet (10.0.1.0/24) with NAT Gateway
+
+### Security
+
+- TCP 22 (SSH) allowed
+- TCP 4317-4318 (OpenTelemetry Collector OTLP) allowed
+- TCP 8080 (Sample Application) allowed
+
+### Configuration
+
+_Please see the cloud-init scripts in `deploy/vm` for details._
+
+### Deployment Notes
+
+The sample applications are deployed to one (or more) worker instances. The worker runs an OpenTelemetry Collector that listens for host telemetry and forwards it to the gateway instance. This instance also contains a collector. The gateway and worker collectors are secured using mTLS as well as OAuth/OIDC.
+
+For convenience, all instances are placed into the public subnet (to avoid having bastion hosts for SSH) -- in a true production environment, the gateway collectors would not be exposed to the public internet.

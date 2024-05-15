@@ -9,8 +9,8 @@ packages:
 
 runcmd:
   - oci certificates certificate-authority-bundle get --certificate-authority-id ocid1.certificateauthority.oc1.us-sanjose-1.amaaaaaa2lro64iajbqqwooyiwofs2uy3z3mswxo3vty3djz5bg2fm4bkfwa --auth instance_principal | jq -r '.data["cert-chain-pem"]' > /home/opc/ca.pem
-  - oci certificates certificate-bundle get --certificate-id ocid1.certificate.oc1.us-sanjose-1.amaaaaaa2lro64iay4vyina6aj44edibjaqm26ipdlg5im6o5s33x4h2e2ka --bundle-type CERTIFICATE_CONTENT_WITH_PRIVATE_KEY --auth instance_principal | jq -r '.data["certificate-pem"]' > /home/opc/cert.pem
-  - oci certificates certificate-bundle get --certificate-id ocid1.certificate.oc1.us-sanjose-1.amaaaaaa2lro64iay4vyina6aj44edibjaqm26ipdlg5im6o5s33x4h2e2ka --bundle-type CERTIFICATE_CONTENT_WITH_PRIVATE_KEY --auth instance_principal | jq -r '.data["private-key-pem"]' > /home/opc/key.pem
+  - oci certificates certificate-bundle get --certificate-id ocid1.certificate.oc1.us-sanjose-1.amaaaaaa2lro64ianbmhxeh5iz3qdupx2c573s5kxtdh2mg66zxbyp4y6n6a --bundle-type CERTIFICATE_CONTENT_WITH_PRIVATE_KEY --auth instance_principal | jq -r '.data["certificate-pem"]' > /home/opc/cert.pem
+  - oci certificates certificate-bundle get --certificate-id ocid1.certificate.oc1.us-sanjose-1.amaaaaaa2lro64ianbmhxeh5iz3qdupx2c573s5kxtdh2mg66zxbyp4y6n6a --bundle-type CERTIFICATE_CONTENT_WITH_PRIVATE_KEY --auth instance_principal | jq -r '.data["private-key-pem"]' > /home/opc/key.pem
   - oci os object get --bucket-name config --name gateway-config.yaml --file /home/opc/config.yaml --auth instance_principal
   - oci os object get --bucket-name otelcol-audit --name otelcol-audit_0.0.0-SNAPSHOT-1ca2fc6_linux_arm64.rpm --file /home/opc/otelcol_linux_arm64.rpm --auth instance_principal
   - sudo rpm -ivh /home/opc/otelcol_linux_arm64.rpm
@@ -25,5 +25,7 @@ runcmd:
   - sudo chown otel:otel /etc/otelcol-audit/cert.pem
   - sudo chown otel:otel /etc/otelcol-audit/key.pem
   - sudo systemctl restart otelcol-audit
+  - sudo firewall-cmd --permanent --zone=public --add-port=4317-4318/tcp
+  - sudo firewall-cmd --reload
 
 final_message: "The system is finally up, after $UPTIME seconds"
