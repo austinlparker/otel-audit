@@ -1,0 +1,32 @@
+name: Publish Docker image to ghcr.io
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker images
+        run: |
+          for dir in samples/*; do
+            if [ -d "$dir" ]; then
+              image_name=$(basename $dir)
+              echo "Building and pushing $image_name"
+              docker build -t ghcr.io/${{ github.repository }}:$image_name $dir
+              docker push ghcr.io/${{ github.repository }}:$image_name
+            fi
+          done
